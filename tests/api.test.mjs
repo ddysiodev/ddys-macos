@@ -51,3 +51,28 @@ test('caches GET requests when TTL is enabled', async () => {
   assert.equal(count, 1);
   assert.match(makeCacheKey('https://example.com'), /^api:/);
 });
+
+test('sends API key with bearer authorization when configured', async () => {
+  await resetAll();
+  const calls = [];
+  const api = new DdysMacosApi({
+    apiBase: 'https://example.com/api',
+    apiKey: 'ddys_test_key',
+    cacheTtlMinutes: 0,
+    requestTimeoutMs: 3000
+  }, {
+    fetch: async (url, init) => {
+      calls.push(init.headers);
+      return {
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({ success: true, data: [] });
+        }
+      };
+    }
+  });
+  await api.latest();
+  assert.equal(calls[0].Authorization, 'Bearer ddys_test_key');
+  assert.equal(calls[0].Accept, 'application/json');
+});

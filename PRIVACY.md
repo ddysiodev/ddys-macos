@@ -6,7 +6,7 @@ DDYS macOS 以本地优先为原则。
 
 应用会在当前 Mac 保存以下数据：
 
-- API Base、站点 Base、主题、缓存、刷新间隔、通知等设置
+- API Base、站点 Base、API Key、主题、缓存、刷新间隔、通知等设置
 - 收藏、稍后看、观看历史
 - 影片备注
 - 关键词订阅
@@ -24,6 +24,8 @@ DDYS macOS 以本地优先为原则。
 - 检查关键词订阅
 - 运行诊断
 - 用户点击打开站点或资源链接
+
+如果用户在设置中填写 API Key，应用只会把它发送到用户配置的 API Base，并使用 `Authorization: Bearer` 请求头。
 
 ## macOS 权限
 

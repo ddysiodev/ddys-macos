@@ -20,6 +20,7 @@ export const STORAGE_KEYS = Object.freeze({
 export const DEFAULT_SETTINGS = Object.freeze({
   apiBase: DEFAULT_API_BASE,
   siteBase: DEFAULT_SITE_BASE,
+  apiKey: '',
   locale: 'zh-CN',
   theme: 'system',
   startupTab: 'discover',

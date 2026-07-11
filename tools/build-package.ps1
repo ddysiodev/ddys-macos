@@ -30,6 +30,7 @@ $Include = @(
   ".github",
   "assets",
   "docs",
+  "public",
   "src",
   "src-tauri",
   "tests",

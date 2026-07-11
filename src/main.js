@@ -206,9 +206,9 @@ async function loadDiscover(force = false) {
     if (force) await clearCache();
     const client = await api();
     const [latest, hot, collections] = await Promise.all([
-      client.latest({ limit: 24 }).catch(() => []),
-      client.hot({ limit: 24 }).catch(() => []),
-      client.collections({ per_page: 12 }).catch(() => ({ data: [] }))
+      client.latest({ limit: 24 }),
+      client.hot({ limit: 24 }),
+      client.collections({ per_page: 12 })
     ]);
     app.latest = normalizeList(latest);
     app.hot = normalizeList(hot);
@@ -271,15 +271,20 @@ async function openDetail(item) {
   render();
   try {
     const client = await api();
-    const [detail, sources, related] = await Promise.all([
-      client.movieDetail(movie.slug).catch(() => movie),
-      client.movieSources(movie.slug).catch(() => ({ online: [], download: [] })),
-      client.movieRelated(movie.slug).catch(() => ({ related: [] }))
+    const [detailResult, sourcesResult, relatedResult] = await Promise.allSettled([
+      client.movieDetail(movie.slug),
+      client.movieSources(movie.slug),
+      client.movieRelated(movie.slug)
     ]);
+    const detail = detailResult.status === 'fulfilled' ? detailResult.value : movie;
+    const sources = sourcesResult.status === 'fulfilled' ? sourcesResult.value : { online: [], download: [] };
+    const related = relatedResult.status === 'fulfilled' ? relatedResult.value : { related: [] };
     app.detail = normalizeMovie({ ...movie, ...detail });
     app.sources = normalizeSources(sources);
     app.related = normalizeList([...(related?.series || []), ...(related?.related || []), ...(Array.isArray(related) ? related : [])]).slice(0, 8);
     render();
+    const failed = [detailResult, sourcesResult, relatedResult].filter((item) => item.status === 'rejected');
+    if (failed.length) toast(`部分详情或资源加载失败：${failed[0].reason?.message || '请运行诊断。'}`);
   } catch (error) {
     toast(error.message || '详情加载失败。');
   }
@@ -364,6 +369,7 @@ async function saveSettingsFromForm(form) {
   await saveSettings({
     apiBase: data.get('apiBase'),
     siteBase: data.get('siteBase'),
+    apiKey: data.get('apiKey'),
     theme: data.get('theme'),
     startupTab: data.get('startupTab'),
     cacheTtlMinutes: data.get('cacheTtlMinutes'),
@@ -561,6 +567,7 @@ function renderSettings(local) {
       <form class="settings-form" data-settings-form>
         ${field('API Base', 'apiBase', settings.apiBase)}
         ${field('站点 Base', 'siteBase', settings.siteBase)}
+        ${field('API Key（可选）', 'apiKey', settings.apiKey, 'password', 'autocomplete="off" spellcheck="false"')}
         <div class="form-grid">
           ${numberField('缓存分钟', 'cacheTtlMinutes', settings.cacheTtlMinutes, 0, 1440)}
           ${numberField('刷新分钟', 'refreshMinutes', settings.refreshMinutes, 5, 1440)}
@@ -733,8 +740,8 @@ function navButton(tab) {
   return `<button class="${app.tab === tab.id ? 'is-active' : ''}" data-action="tab" data-value="${tab.id}">${tab.label}</button>`;
 }
 
-function field(label, name, value) {
-  return `<label>${escapeHtml(label)}<input name="${escapeAttr(name)}" value="${escapeAttr(value)}"></label>`;
+function field(label, name, value, type = 'text', extra = '') {
+  return `<label>${escapeHtml(label)}<input name="${escapeAttr(name)}" type="${escapeAttr(type)}" value="${escapeAttr(value)}" ${extra}></label>`;
 }
 
 function numberField(label, name, value, min, max) {

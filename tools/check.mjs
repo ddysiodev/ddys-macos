@@ -21,6 +21,11 @@ const requiredFiles = [
   'assets/icons/icon-128.png',
   'assets/icons/icon-192.png',
   'assets/icons/icon-512.png',
+  'public/assets/icons/icon-16.png',
+  'public/assets/icons/icon-32.png',
+  'public/assets/icons/icon-128.png',
+  'public/assets/icons/icon-192.png',
+  'public/assets/icons/icon-512.png',
   'src/main.js',
   'src/styles.css',
   'src/core/api.js',
@@ -128,6 +133,7 @@ async function checkDocs() {
   for (const fragment of ['macOS', '发现', '搜索', '订阅', '导入导出', '隐私']) {
     assert(readme.includes(fragment), `README.md missing ${fragment}.`);
   }
+  assert(readme.includes('API Key'), 'README.md missing API Key.');
   const research = await read('docs/user-research.md');
   for (const fragment of ['Tauri v2', 'WKWebView', '托盘', '通知', '本地数据', 'DMG']) {
     assert(research.includes(fragment), `user-research missing ${fragment}.`);

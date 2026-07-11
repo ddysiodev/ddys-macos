@@ -14,9 +14,10 @@ import {
 
 test('stores settings and local collections without browser localStorage', async () => {
   await resetAll();
-  const settings = await saveSettings({ cacheTtlMinutes: 30, theme: 'dark', requestTimeoutMs: 5000 });
+  const settings = await saveSettings({ apiKey: ' ddys_test_key ', cacheTtlMinutes: 30, theme: 'dark', requestTimeoutMs: 5000 });
   assert.equal(settings.theme, 'dark');
   assert.equal(settings.cacheTtlMinutes, 30);
+  assert.equal(settings.apiKey, 'ddys_test_key');
 
   const movie = { title: '本地电影', slug: 'local-movie' };
   const favorite = await toggleCollectionItem('favorites', movie);

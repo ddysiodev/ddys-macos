@@ -160,6 +160,7 @@ export function normalizeSettings(input = {}) {
     ...merged,
     apiBase: normalizeBaseUrl(merged.apiBase, DEFAULT_SETTINGS.apiBase),
     siteBase: normalizeBaseUrl(merged.siteBase, DEFAULT_SETTINGS.siteBase),
+    apiKey: String(merged.apiKey || '').trim(),
     theme: ['system', 'light', 'dark'].includes(merged.theme) ? merged.theme : DEFAULT_SETTINGS.theme,
     startupTab: ['discover', 'search', 'calendar', 'library', 'alerts', 'settings'].includes(merged.startupTab)
       ? merged.startupTab

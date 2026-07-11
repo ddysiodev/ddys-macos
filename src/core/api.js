@@ -4,7 +4,7 @@ import { getSettings, readCache, writeCache } from './storage.js';
 
 export class DdysMacosApi {
   constructor(settings, options = {}) {
-    this.settings = settings;
+    this.settings = { apiKey: '', ...settings };
     this.fetchImpl = options.fetch || globalThis.fetch;
     if (typeof this.fetchImpl !== 'function') throw new Error('当前运行环境缺少 Fetch API。');
   }
@@ -27,11 +27,15 @@ export class DdysMacosApi {
     try {
       response = await this.fetchImpl(url, {
         method,
-        headers: { Accept: 'application/json' },
+        headers: buildHeaders(this.settings),
         signal: controller.signal
       });
       const text = await response.text();
-      json = text ? JSON.parse(text) : {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`DDYS API 返回不是 JSON（HTTP ${response.status}）。`);
+      }
     } catch (error) {
       throw new Error(error?.message || 'DDYS API 请求失败。');
     } finally {
@@ -39,7 +43,7 @@ export class DdysMacosApi {
     }
 
     if (!response.ok || json?.success === false) {
-      throw new Error(json?.message || `DDYS API HTTP ${response.status}`);
+      throw new Error(formatApiError(response.status, json?.message, this.settings));
     }
 
     if (cacheKey && ttlMs > 0) await putCache(cacheKey, json);
@@ -109,6 +113,7 @@ export class DdysMacosApi {
     return {
       ok: true,
       apiBase: this.settings.apiBase,
+      apiKeyConfigured: Boolean(String(this.settings.apiKey || '').trim()),
       latencyMs: Date.now() - startedAt,
       sampleCount: Array.isArray(latest) ? latest.length : 0
     };
@@ -134,4 +139,21 @@ async function putCache(key, value) {
   const next = { ...cache, [key]: { time: Date.now(), value } };
   const entries = Object.entries(next).sort((a, b) => b[1].time - a[1].time).slice(0, MAX_CACHE_ENTRIES);
   await writeCache(Object.fromEntries(entries));
+}
+
+function buildHeaders(settings) {
+  const headers = { Accept: 'application/json' };
+  const apiKey = String(settings?.apiKey || '').trim();
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+  return headers;
+}
+
+function formatApiError(status, message, settings) {
+  const prefix = message || `DDYS API HTTP ${status}`;
+  if (status === 401 || status === 403) {
+    return String(settings?.apiKey || '').trim()
+      ? `${prefix}。API Key 可能无效或没有权限，请在设置中检查。`
+      : `${prefix}。如果你的 API Base 启用了鉴权，请在设置中填写 API Key。`;
+  }
+  return prefix;
 }
