@@ -60,7 +60,7 @@ jobs:
           workspaces: "./src-tauri -> src-tauri/target"
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --lockfile=false
 
       - name: Verify source package
         run: pnpm run test
