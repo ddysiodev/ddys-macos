@@ -1,0 +1,42 @@
+{
+  "name": "ddys-macos",
+  "version": "0.1.0",
+  "description": "DDYS macOS desktop app with discovery, search, calendar, library, subscriptions, diagnostics, and local data management.",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.29.2",
+  "license": "MIT",
+  "homepage": "https://github.com/ddysiodev/ddys-macos",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ddysiodev/ddys-macos.git"
+  },
+  "keywords": [
+    "ddys",
+    "macos",
+    "tauri",
+    "movies",
+    "watchlist"
+  ],
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "check": "node tools/check.mjs",
+    "test": "node tools/check.mjs && node --test tests/*.test.mjs",
+    "build:zip": "powershell -ExecutionPolicy Bypass -File tools/build-package.ps1",
+    "macos:dev": "tauri dev",
+    "macos:build": "tauri build --bundles app,dmg"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-notification": "^2.0.0",
+    "@tauri-apps/plugin-opener": "^2.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "vite": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
