@@ -7,6 +7,7 @@ const root = process.cwd();
 const failures = [];
 
 const requiredFiles = [
+  '.github/workflows/build-macos.yml',
   'index.html',
   'package.json',
   'vite.config.js',
@@ -42,6 +43,7 @@ const requiredFiles = [
   'src-tauri/Entitlements.plist',
   'src-tauri/Info.plist',
   'docs/architecture.md',
+  'docs/release-builds.md',
   'docs/user-research.md',
   'tests/api.test.mjs',
   'tests/normalize.test.mjs',
@@ -96,6 +98,7 @@ async function checkPackage() {
   assert((await read('src/core/constants.js')).includes(`VERSION = '${pkg.version}'`), 'runtime version must match package.json.');
   assert((await read('src-tauri/tauri.conf.json')).includes(`"version": "${pkg.version}"`), 'Tauri version must match package.json.');
   assert((await read('src-tauri/Cargo.toml')).includes(`version = "${pkg.version}"`), 'Cargo version must match package.json.');
+  assert(pkg.scripts?.tauri === 'tauri', 'package tauri script missing.');
 }
 
 async function checkTauriConfig() {
@@ -108,6 +111,12 @@ async function checkTauriConfig() {
   assert(config.bundle?.macOS?.minimumSystemVersion === '11.0', 'macOS minimum system version mismatch.');
   assert(config.bundle?.macOS?.entitlements === 'Entitlements.plist', 'macOS entitlements missing.');
   assert(config.bundle?.macOS?.infoPlist === 'Info.plist', 'macOS Info.plist missing.');
+  assert(config.bundle?.macOS?.signingIdentity === '-', 'macOS ad-hoc signing identity missing.');
+  const workflow = await read('.github/workflows/build-macos.yml');
+  assert(workflow.includes('tauri-apps/tauri-action@v1'), 'macOS workflow must use tauri-action.');
+  assert(workflow.includes('aarch64-apple-darwin'), 'macOS Apple Silicon target missing.');
+  assert(workflow.includes('x86_64-apple-darwin'), 'macOS Intel target missing.');
+  assert(workflow.includes('releaseAssetNamePattern'), 'macOS workflow release asset naming missing.');
   const caps = JSON.parse(await read('src-tauri/capabilities/default.json'));
   assert(caps.permissions.includes('core:default'), 'core permission missing.');
   assert(caps.permissions.includes('opener:default'), 'opener permission missing.');
@@ -122,6 +131,10 @@ async function checkDocs() {
   const research = await read('docs/user-research.md');
   for (const fragment of ['Tauri v2', 'WKWebView', '托盘', '通知', '本地数据', 'DMG']) {
     assert(research.includes(fragment), `user-research missing ${fragment}.`);
+  }
+  const releaseBuilds = await read('docs/release-builds.md');
+  for (const fragment of ['GitHub Actions', 'aarch64-apple-darwin', 'x86_64-apple-darwin', 'DMG', 'ad-hoc']) {
+    assert(releaseBuilds.includes(fragment), `release-builds missing ${fragment}.`);
   }
 }
 
@@ -170,7 +183,7 @@ async function listFiles(dir) {
 }
 
 function isTextFile(rel) {
-  return /\.(js|mjs|json|html|css|md|txt|ps1|toml|rs)$/i.test(rel) || rel === '.gitignore' || rel === 'LICENSE';
+  return /\.(js|mjs|json|html|css|md|txt|ps1|toml|rs|yml|yaml|plist)$/i.test(rel) || rel === '.gitignore' || rel === 'LICENSE';
 }
 
 function slash(value) {

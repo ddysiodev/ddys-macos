@@ -24,6 +24,7 @@
     "check": "node tools/check.mjs",
     "test": "node tools/check.mjs && node --test tests/*.test.mjs",
     "build:zip": "powershell -ExecutionPolicy Bypass -File tools/build-package.ps1",
+    "tauri": "tauri",
     "macos:dev": "tauri dev",
     "macos:build": "tauri build --bundles app,dmg"
   },

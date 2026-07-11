@@ -47,6 +47,7 @@
       "bundleVersion": "0.1.0",
       "bundleName": "DDYS macOS",
       "hardenedRuntime": true,
+      "signingIdentity": "-",
       "entitlements": "Entitlements.plist",
       "infoPlist": "Info.plist",
       "dmg": {

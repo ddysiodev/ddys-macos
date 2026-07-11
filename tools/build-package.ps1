@@ -27,6 +27,7 @@ if (-not $PackagePath.StartsWith($RootPath, [System.StringComparison]::OrdinalIg
 }
 
 $Include = @(
+  ".github",
   "assets",
   "docs",
   "src",
